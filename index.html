@@ -3,50 +3,19 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>千守一家 🐾 幸福帳本</title>
+  <title>千守一家 🐾 幸福帳本（雲端共編版）</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
   <style>
-    body {
-      font-family: 'Noto Sans TC', sans-serif;
-      background-color: #FFF9F5;
-      color: #4A3B32;
-    }
-    .cute-card {
-      background: #FFFFFF;
-      border-radius: 24px;
-      box-shadow: 0 8px 24px rgba(235, 168, 150, 0.14);
-      border: 2px solid #FFE8DF;
-    }
-    .tab-btn {
-      transition: all 0.2s ease;
-    }
-    .tab-btn.active {
-      background-color: #FF8B7B;
-      color: #FFFFFF;
-      box-shadow: 0 4px 12px rgba(255, 139, 123, 0.35);
-      transform: translateY(-1px);
-    }
-    .edit-only {
-      display: none;
-    }
-    body.edit-mode .edit-only {
-      display: inline-flex;
-    }
-    body.edit-mode .edit-block {
-      display: block;
-    }
-    .edit-block {
-      display: none;
-    }
-    @keyframes pop {
-      0% { transform: scale(0.95); }
-      50% { transform: scale(1.06); }
-      100% { transform: scale(1); }
-    }
-    .animate-pop {
-      animation: pop 0.3s ease-out;
-    }
+    body { font-family: 'Noto Sans TC', sans-serif; background-color: #FFF9F5; color: #4A3B32; }
+    .cute-card { background: #FFFFFF; border-radius: 24px; box-shadow: 0 8px 24px rgba(235, 168, 150, 0.14); border: 2px solid #FFE8DF; }
+    .tab-btn { transition: all 0.2s ease; }
+    .tab-btn.active { background-color: #FF8B7B; color: #FFFFFF; box-shadow: 0 4px 12px rgba(255, 139, 123, 0.35); transform: translateY(-1px); }
+    .edit-only { display: none; }
+    body.edit-mode .edit-only { display: inline-flex; }
+    @keyframes pop { 0% { transform: scale(0.95); } 50% { transform: scale(1.06); } 100% { transform: scale(1); } }
+    .animate-pop { animation: pop 0.3s ease-out; }
   </style>
 </head>
 <body class="pb-16">
@@ -57,8 +26,11 @@
       <div class="flex items-center gap-2.5">
         <span class="text-3xl">🏡</span>
         <div>
-          <h1 class="text-xl font-black tracking-wide text-[#E06A5B]">千守一家 🐾 幸福帳本</h1>
-          <p class="text-xs text-[#9C8275]">把每一分恩典與努力，都變成家裡穩穩的幸福</p>
+          <div class="flex items-center gap-2">
+            <h1 class="text-xl font-black tracking-wide text-[#E06A5B]">千守一家 🐾 幸福帳本</h1>
+            <span id="syncBadge" class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#FEF3C7] text-[#B45309]">☁️ 連線同步中...</span>
+          </div>
+          <p class="text-xs text-[#9C8275]">夫妻即時同步共編｜把每一分恩典與努力變成幸福</p>
         </div>
       </div>
 
@@ -82,10 +54,8 @@
   </header>
 
   <main class="max-w-5xl mx-auto px-4 mt-6">
-
     <!-- ==================== 分頁 1：當月總覽 ==================== -->
     <section id="tab-home" class="space-y-6">
-      <!-- 月份選擇器 -->
       <div class="cute-card p-4">
         <div class="flex items-center justify-between mb-2">
           <span class="text-sm font-bold text-[#9C8275]">🗓️ 切換檢視月份（事奉學校分期自 12 月起算）</span>
@@ -94,7 +64,6 @@
         <div id="monthSelector" class="grid grid-cols-6 sm:grid-cols-12 gap-1.5"></div>
       </div>
 
-      <!-- 頂部四大核心看板 -->
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div class="cute-card p-4 bg-gradient-to-br from-white to-[#FFF3EE]">
           <p class="text-xs font-bold text-[#9C8275]" id="cardMonthLabel1">12月總收入</p>
@@ -118,15 +87,12 @@
         </div>
       </div>
 
-      <!-- 收入與恩典記帳 + 存款達標 -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <!-- 收入卡片 -->
         <div class="cute-card p-5 space-y-4">
           <div class="flex items-center justify-between">
             <h2 class="text-lg font-black text-[#4A3B32]">💰 家庭月收入與恩典記帳</h2>
             <button onclick="openGraceModal()" class="px-3 py-1.5 rounded-full text-xs font-bold bg-[#FFE5DC] text-[#D95D4B] hover:bg-[#FFD4C7]">＋ 新增當月恩典</button>
           </div>
-
           <div class="space-y-2.5 text-sm">
             <div class="flex items-center justify-between p-3 rounded-2xl bg-[#FFF9F5]">
               <span class="font-bold">👩 媽媽薪資</span>
@@ -143,14 +109,12 @@
               </div>
             </div>
           </div>
-
           <div class="border-t border-dashed border-[#FFE0D4] pt-3">
             <p class="text-xs font-bold text-[#9C8275] mb-2">✨ <span id="graceMonthLabel">12月</span>恩典收入紀錄（不固定進帳）</p>
             <div id="graceIncomeList" class="space-y-2 text-sm"></div>
           </div>
         </div>
 
-        <!-- 預存基金與存款目標 -->
         <div class="cute-card p-5 flex flex-col justify-between space-y-4">
           <div>
             <h2 class="text-lg font-black text-[#4A3B32] mb-3">🎯 <span id="goalMonthTitle">12月</span>存款目標與預存提撥</h2>
@@ -164,14 +128,12 @@
               </div>
               <p class="text-xs text-[#5E8C73]">包含水電費平均 $1,500 ＋ 年度牌照/燃料/房屋/地價稅與女兒保費預存 <span id="displayTaxReserveAmt">$3,000</span>/月</p>
             </div>
-
             <div class="mt-4 p-4 rounded-2xl bg-[#FFF5F2] border border-[#FFDCD2] text-center">
               <p class="text-xs font-bold text-[#9C8275]">本月預計純存款結餘</p>
               <p class="text-3xl font-black text-[#E06A5B] my-1" id="displayMonthlyNetSavings">$10,803</p>
               <p class="text-xs text-[#9C8275]">（總收入 － 固定開銷 － 預存基金）</p>
             </div>
           </div>
-
           <button id="goalCheckBtn" onclick="toggleMonthAchieved()" class="w-full py-3.5 rounded-2xl font-black text-base transition flex items-center justify-center gap-2 shadow-sm bg-[#FFE5DC] text-[#D95D4B] hover:bg-[#FFD4C7]">
             <span id="goalCheckIcon">⬜</span>
             <span id="goalCheckText">點選本月存款達標！</span>
@@ -179,7 +141,6 @@
         </div>
       </div>
 
-      <!-- 每月固定開銷明細 -->
       <div class="cute-card p-5">
         <div class="flex items-center justify-between mb-4">
           <div>
@@ -194,12 +155,11 @@
 
     <!-- ==================== 分頁 2：目前投資狀況與負債 ==================== -->
     <section id="tab-invest" class="hidden space-y-6">
-      <!-- 投資與儲蓄資產 -->
       <div class="cute-card p-5 space-y-4">
         <div class="flex flex-wrap items-center justify-between gap-2">
           <div>
             <h2 class="text-lg font-black text-[#4A3B32]">🌱 目前投資與儲蓄狀況</h2>
-            <p class="text-xs text-[#9C8275]">點擊富邦保單卡片可查看完整 1～30 年解約金表（媽媽月繳醫療險已移至保險清單）</p>
+            <p class="text-xs text-[#9C8275]">點擊富邦保單卡片可查看完整 1～30 年解約金表</p>
           </div>
           <div class="flex gap-2">
             <button onclick="openAddStockModal()" class="px-3 py-1.5 rounded-full text-xs font-bold bg-[#EDE9FE] text-[#6B5CE7]">＋ 新增股票</button>
@@ -208,7 +168,6 @@
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <!-- 富邦大保單 -->
           <div onclick="openSurrenderModal('fubonBig')" class="cursor-pointer p-4 rounded-2xl bg-[#FFF8F5] border-2 border-[#FFDCD2] hover:border-[#FF8B7B] transition">
             <div class="flex justify-between items-start">
               <span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-[#FFE5DC] text-[#D95D4B]">保留滾複利</span>
@@ -219,7 +178,6 @@
             <p class="text-xl font-black text-[#E06A5B] mt-3">$363,195 <span class="text-xs font-normal text-[#9C8275]">(第7年末預估)</span></p>
           </div>
 
-          <!-- 富邦小保單 -->
           <div onclick="openSurrenderModal('fubonSmall')" class="cursor-pointer p-4 rounded-2xl bg-[#FFF8F5] border-2 border-[#FFDCD2] hover:border-[#FF8B7B] transition">
             <div class="flex justify-between items-start">
               <span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-[#FEF3C7] text-[#B45309]">預計4月滿期解約還債</span>
@@ -230,7 +188,6 @@
             <p class="text-xl font-black text-[#D97706] mt-3">$221,948 <span class="text-xs font-normal text-[#9C8275]">(第7年末預估)</span></p>
           </div>
 
-          <!-- 緊急預備帳戶 -->
           <div class="p-4 rounded-2xl bg-[#F0F9FF] border-2 border-[#BAE6FD]">
             <span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-[#E0F2FE] text-[#0369A1]">家庭安全網活存</span>
             <h3 class="font-black text-base mt-2">緊急預備金專戶</h3>
@@ -239,14 +196,12 @@
           </div>
         </div>
 
-        <!-- 股票投資組合 -->
         <div class="pt-3 border-t border-dashed border-[#FFE0D4]">
           <h3 class="font-black text-sm text-[#4A3B32] mb-2.5">📈 股票投資組合（依當日收盤價即時試算損益）</h3>
           <div id="stockList" class="space-y-2.5"></div>
         </div>
       </div>
 
-      <!-- 貸款與負債本息追蹤 -->
       <div class="cute-card p-5 space-y-4">
         <div class="flex items-center justify-between">
           <div>
@@ -293,14 +248,13 @@
       </div>
     </section>
 
-    <!-- ==================== 分頁 5：雙副業記帳（童裝 & 美甲） ==================== -->
+    <!-- ==================== 分頁 5：雙副業記帳 ==================== -->
     <section id="tab-sidehustle" class="hidden space-y-5">
       <div class="flex gap-2">
         <button onclick="switchBizTab('clothing')" id="bizBtn-clothing" class="px-5 py-2.5 rounded-2xl text-sm font-black bg-[#FF8B7B] text-white shadow-sm">👗 童裝選品副業（損益結算）</button>
         <button onclick="switchBizTab('nails')" id="bizBtn-nails" class="px-5 py-2.5 rounded-2xl text-sm font-black bg-white text-[#7D6457] border">💅 美甲工作室副業</button>
       </div>
 
-      <!-- 童裝副業面板 -->
       <div id="bizPanel-clothing" class="space-y-5">
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div class="cute-card p-4">
@@ -338,7 +292,6 @@
         </div>
       </div>
 
-      <!-- 美甲副業面板 -->
       <div id="bizPanel-nails" class="hidden space-y-5">
         <div class="grid grid-cols-3 gap-3">
           <div class="cute-card p-4">
@@ -379,10 +332,9 @@
       </div>
       <div id="travelList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
     </section>
-
   </main>
 
-  <!-- ==================== 通用彈出視窗 ==================== -->
+  <!-- 通用彈出視窗 -->
   <div id="modalBackdrop" class="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 hidden items-center justify-center p-4">
     <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border-2 border-[#FFE0D4] max-h-[85vh] overflow-y-auto">
       <div class="flex items-center justify-between mb-4">
@@ -394,7 +346,15 @@
   </div>
 
   <script>
-    // ==================== 預設完整資料庫 ====================
+    const SUPABASE_URL = 'https://kswsnkbrnhgcuuevjwoz.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_-cq_7S-xmuwRtHYszaZiPw_bC0RwCgb';
+    const LEDGER_ID = 'qianshou_main';
+
+    let sbClient = null;
+    if (SUPABASE_URL.startsWith('http') && SUPABASE_KEY.length > 20) {
+      sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    }
+
     const defaultData = {
       selectedMonth: 12,
       momSalary: 42000,
@@ -415,22 +375,14 @@
         { name: '網路費', amount: 999, note: '每月固定支出' }
       ],
       monthData: {
-        1: { achieved: false, graceList: [] },
-        2: { achieved: false, graceList: [] },
-        3: { achieved: false, graceList: [] },
-        4: { achieved: false, graceList: [] },
-        5: { achieved: false, graceList: [] },
-        6: { achieved: false, graceList: [] },
-        7: { achieved: false, graceList: [] },
-        8: { achieved: false, graceList: [] },
-        9: { achieved: false, graceList: [] },
-        10: { achieved: false, graceList: [] },
-        11: { achieved: false, graceList: [] },
-        12: { achieved: false, graceList: [] }
+        1: { achieved: false, graceList: [] }, 2: { achieved: false, graceList: [] },
+        3: { achieved: false, graceList: [] }, 4: { achieved: false, graceList: [] },
+        5: { achieved: false, graceList: [] }, 6: { achieved: false, graceList: [] },
+        7: { achieved: false, graceList: [] }, 8: { achieved: false, graceList: [] },
+        9: { achieved: false, graceList: [] }, 10: { achieved: false, graceList: [] },
+        11: { achieved: false, graceList: [] }, 12: { achieved: false, graceList: [] }
       },
-      stocks: [
-        { code: '006208', name: '富邦台50', shares: 0, avgCost: 110, currentPrice: 112 }
-      ],
+      stocks: [{ code: '006208', name: '富邦台50', shares: 0, avgCost: 110, currentPrice: 112 }],
       debts: [
         { id: 'd1', name: '信用卡費循環', principal: 116820, rate: 15.0, monthlyPay: 5000, note: '預計 2027/02 年終＋生存金優先全額清償！' },
         { id: 'd2', name: '保單借款', principal: 150000, rate: 3.0, monthlyPay: 375, note: '預計 2027/04 富邦小保單滿期解約一筆清零！' },
@@ -472,29 +424,19 @@
       clothingInventory: 0,
       clothingLogs: [],
       nailsLogs: [],
-      travels: [
-        { id: 't1', title: '千守一家幸福小旅行', location: '台灣親子渡假 / 日本', target: 50000, saved: 5000, deadline: '2027-10' }
-      ]
+      travels: [{ id: 't1', title: '千守一家幸福小旅行', location: '台灣親子渡假 / 日本', target: 50000, saved: 5000, deadline: '2027-10' }]
     };
 
     const surrenderTables = {
       fubonBig: {
         title: '富邦吉好利（大保單 1058529555｜保額 18 萬）預估解約金表',
         note: '繳費 6 年期（年繳 $62,046），預計保留繼續滾複利！',
-        rows: [
-          [1, 29174], [2, 81649], [3, 141490], [4, 208851], [5, 283890],
-          [6, 363195], [7, 374038], [8, 381418], [9, 388919], [10, 396559],
-          [12, 412248], [15, 437074], [20, 481443], [25, 530171], [30, 583615]
-        ]
+        rows: [[1,29174],[2,81649],[3,141490],[4,208851],[5,283890],[6,363195],[7,374038],[8,381418],[9,388919],[10,396559],[12,412248],[15,437074],[20,481443],[25,530171],[30,583615]]
       },
       fubonSmall: {
         title: '富邦吉好利（小保單 1058529618｜保額 11 萬）預估解約金表',
         note: '繳費 6 年期（年繳 $37,917），預計 2027/04 滿期解約領回清償債務！',
-        rows: [
-          [1, 17827], [2, 49896], [3, 86465], [4, 127630], [5, 173485],
-          [6, 221948], [7, 228573], [8, 233083], [9, 237666], [10, 242336],
-          [12, 251921], [15, 267092], [20, 294207], [25, 323985], [30, 356641]
-        ]
+        rows: [[1,17827],[2,49896],[3,86465],[4,127630],[5,173485],[6,221948],[7,228573],[8,233083],[9,237666],[10,242336],[12,251921],[15,267092],[20,294207],[25,323985],[30,356641]]
       }
     };
 
@@ -502,14 +444,59 @@
     let isEditMode = false;
     let currentInsFilter = 'all';
 
+    // ==================== 雲端即時同步引擎 ====================
+    async function initCloudSync() {
+      if (!sbClient) return;
+      const badge = document.getElementById('syncBadge');
+      badge.innerText = '☁️ 連線同步中...';
+
+      const { data, error } = await sbClient
+        .from('family_ledger')
+        .select('data')
+        .eq('id', LEDGER_ID)
+        .single();
+
+      if (!error && data && data.data && Object.keys(data.data).length > 0) {
+        appData = { ...defaultData, ...data.data };
+        localStorage.setItem('qianshou_finance_v3', JSON.stringify(appData));
+        renderAll();
+      } else if (!error) {
+        await pushToCloud();
+      }
+
+      badge.className = 'text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[#DCFCE7] text-[#15803D]';
+      badge.innerText = '☁️ 夫妻雲端即時同步中';
+
+      // 監聽另一半手機上的即時更新
+      sbClient
+        .channel('public:family_ledger')
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'family_ledger', filter: `id=eq.${LEDGER_ID}` }, payload => {
+          if (payload.new && payload.new.data) {
+            appData = { ...defaultData, ...payload.new.data };
+            localStorage.setItem('qianshou_finance_v3', JSON.stringify(appData));
+            renderAll();
+          }
+        })
+        .subscribe();
+    }
+
+    async function pushToCloud() {
+      if (!sbClient) return;
+      const badge = document.getElementById('syncBadge');
+      badge.innerText = '☁️ 儲存同步中...';
+      await sbClient
+        .from('family_ledger')
+        .upsert({ id: LEDGER_ID, data: appData, updated_at: new Date().toISOString() });
+      badge.innerText = '☁️ 夫妻雲端即時同步中';
+    }
+
     function saveData() {
       localStorage.setItem('qianshou_finance_v3', JSON.stringify(appData));
       renderAll();
+      pushToCloud();
     }
 
-    function formatMoney(num) {
-      return '$' + Math.round(Number(num) || 0).toLocaleString('zh-TW');
-    }
+    function formatMoney(num) { return '$' + Math.round(Number(num) || 0).toLocaleString('zh-TW'); }
 
     function toggleEditMode() {
       isEditMode = !isEditMode;
@@ -541,13 +528,7 @@
       document.getElementById('monthSelector').innerHTML = monthOrder.map(mo => {
         const isSelected = mo === m;
         const isAchieved = appData.monthData[mo]?.achieved;
-        return `
-          <button onclick="selectMonth(${mo})" class="py-2 rounded-xl text-xs font-black border transition ${
-            isSelected ? 'bg-[#FF8B7B] text-white border-[#FF8B7B] shadow-sm' : 'bg-[#FFF9F5] text-[#7D6457] border-[#FFE0D4] hover:bg-[#FFEBE4]'
-          }">
-            ${mo}月${isAchieved ? '✅' : ''}
-          </button>
-        `;
+        return `<button onclick="selectMonth(${mo})" class="py-2 rounded-xl text-xs font-black border transition ${isSelected ? 'bg-[#FF8B7B] text-white border-[#FF8B7B] shadow-sm' : 'bg-[#FFF9F5] text-[#7D6457] border-[#FFE0D4] hover:bg-[#FFEBE4]'}">${mo}月${isAchieved ? '✅' : ''}</button>`;
       }).join('');
 
       document.getElementById('displayMomSalary').innerText = formatMoney(appData.momSalary);
@@ -562,32 +543,12 @@
 
       document.getElementById('graceIncomeList').innerHTML = graceList.length === 0
         ? `<p class="text-xs text-[#B59E92] py-2">🌸 本月尚無額外恩典收入紀錄，有進帳隨時點上方按鈕新增唷！</p>`
-        : graceList.map((g, idx) => `
-          <div class="flex items-center justify-between p-2.5 rounded-xl bg-[#F0FDF4] border border-[#BBF7D0]">
-            <span class="font-bold text-[#166534]">✨ ${g.name}</span>
-            <div class="flex items-center gap-2">
-              <span class="font-black text-[#15803D]">+${formatMoney(g.amount)}</span>
-              <button onclick="deleteGrace(${idx})" class="text-xs text-red-400 hover:text-red-600">✕</button>
-            </div>
-          </div>
-        `).join('');
+        : graceList.map((g, idx) => `<div class="flex items-center justify-between p-2.5 rounded-xl bg-[#F0FDF4] border border-[#BBF7D0]"><span class="font-bold text-[#166534]">✨ ${g.name}</span><div class="flex items-center gap-2"><span class="font-black text-[#15803D]">+${formatMoney(g.amount)}</span><button onclick="deleteGrace(${idx})" class="text-xs text-red-400">✕</button></div></div>`).join('');
 
       let fixedTotal = 0;
       document.getElementById('fixedExpensesList').innerHTML = appData.fixedExpenses.map((exp, idx) => {
         fixedTotal += Number(exp.amount) || 0;
-        return `
-          <div class="flex items-center justify-between p-3 rounded-2xl bg-[#FFF9F5] border border-[#FFE8DF]">
-            <div>
-              <p class="font-bold text-[#4A3B32]">${exp.name}</p>
-              <p class="text-[11px] text-[#9C8275]">${exp.note || ''}</p>
-            </div>
-            <div class="flex items-center gap-1.5">
-              <span class="font-black text-[#E06A5B]">${formatMoney(exp.amount)}</span>
-              <button onclick="editExpense(${idx})" class="edit-only text-xs px-2 py-1 bg-white rounded-lg border">✏️</button>
-              <button onclick="deleteExpense(${idx})" class="edit-only text-xs px-2 py-1 bg-white rounded-lg border text-red-500">🗑️</button>
-            </div>
-          </div>
-        `;
+        return `<div class="flex items-center justify-between p-3 rounded-2xl bg-[#FFF9F5] border border-[#FFE8DF]"><div><p class="font-bold text-[#4A3B32]">${exp.name}</p><p class="text-[11px] text-[#9C8275]">${exp.note || ''}</p></div><div class="flex items-center gap-1.5"><span class="font-black text-[#E06A5B]">${formatMoney(exp.amount)}</span><button onclick="editExpense(${idx})" class="edit-only text-xs px-2 py-1 bg-white rounded-lg border">✏️</button><button onclick="deleteExpense(${idx})" class="edit-only text-xs px-2 py-1 bg-white rounded-lg border text-red-500">🗑️</button></div></div>`;
       }).join('');
 
       const reserveAmt = Number(appData.reserveMode) || 4500;
@@ -618,28 +579,10 @@
         const profit = marketVal - costVal;
         const pct = costVal > 0 ? ((profit / costVal) * 100).toFixed(1) : '0.0';
         stockMarketTotal += marketVal;
-        return `
-          <div class="flex flex-wrap items-center justify-between gap-2 p-3 rounded-2xl bg-[#F8F7FF] border border-[#E0E7FF] text-sm">
-            <div>
-              <span class="font-black text-[#4338CA]">${st.code} ${st.name}</span>
-              <p class="text-xs text-[#6B7280]">持有 ${st.shares} 股｜成本 $${st.avgCost}｜現價 $${st.currentPrice}</p>
-            </div>
-            <div class="flex items-center gap-3">
-              <div class="text-right">
-                <p class="font-black text-[#4338CA]">市值 ${formatMoney(marketVal)}</p>
-                <p class="text-xs font-bold ${profit >= 0 ? 'text-[#16A34A]' : 'text-[#DC2626]'}">
-                  ${profit >= 0 ? '+' : ''}${formatMoney(profit)} (${pct}%)
-                </p>
-              </div>
-              <button onclick="updateStockPrice(${idx})" class="px-2.5 py-1.5 rounded-xl bg-white border text-xs font-bold text-[#4338CA]">更新盤價</button>
-              <button onclick="deleteStock(${idx})" class="text-xs text-red-400">✕</button>
-            </div>
-          </div>
-        `;
+        return `<div class="flex flex-wrap items-center justify-between gap-2 p-3 rounded-2xl bg-[#F8F7FF] border border-[#E0E7FF] text-sm"><div><span class="font-black text-[#4338CA]">${st.code} ${st.name}</span><p class="text-xs text-[#6B7280]">持有 ${st.shares} 股｜成本 $${st.avgCost}｜現價 $${st.currentPrice}</p></div><div class="flex items-center gap-3"><div class="text-right"><p class="font-black text-[#4338CA]">市值 ${formatMoney(marketVal)}</p><p class="text-xs font-bold ${profit >= 0 ? 'text-[#16A34A]' : 'text-[#DC2626]'}">${profit >= 0 ? '+' : ''}${formatMoney(profit)} (${pct}%)</p></div><button onclick="updateStockPrice(${idx})" class="px-2.5 py-1.5 rounded-xl bg-white border text-xs font-bold text-[#4338CA]">更新盤價</button><button onclick="deleteStock(${idx})" class="text-xs text-red-400">✕</button></div></div>`;
       }).join('');
 
-      const totalAssets = 363195 + 221948 + (Number(appData.emergencyFund) || 0) + stockMarketTotal;
-      document.getElementById('statTotalAssets').innerText = formatMoney(totalAssets);
+      document.getElementById('statTotalAssets').innerText = formatMoney(363195 + 221948 + (Number(appData.emergencyFund) || 0) + stockMarketTotal);
 
       let totalDebt = 0;
       document.getElementById('debtList').innerHTML = appData.debts.map((d, idx) => {
@@ -648,63 +591,17 @@
         const monthlyInterest = Math.round(p * ((Number(d.rate) || 0) / 100 / 12));
         const pay = Number(d.monthlyPay) || 0;
         const actualPrincipalPaid = Math.max(0, pay - monthlyInterest);
-        return `
-          <div class="p-4 rounded-2xl bg-[#FFF5F7] border border-[#FECDD3] space-y-2">
-            <div class="flex justify-between items-start">
-              <div>
-                <h3 class="font-black text-base text-[#9F1239]">${d.name}</h3>
-                <p class="text-xs text-[#BE123C]">年利率 ${d.rate}%｜月繳 ${formatMoney(pay)}</p>
-              </div>
-              <button onclick="recordDebtPayment(${idx})" class="px-2.5 py-1 rounded-full text-xs font-bold bg-white text-[#E11D48] border border-[#FDA4AF] hover:bg-[#FFE4E6]">✓ 記本月還款</button>
-            </div>
-            <p class="text-2xl font-black text-[#E11D48]">剩餘本金：${formatMoney(p)}</p>
-            <div class="grid grid-cols-2 gap-2 text-xs bg-white p-2.5 rounded-xl">
-              <div>💔 本月利息吃掉：<span class="font-bold text-[#E11D48]">${formatMoney(monthlyInterest)}</span></div>
-              <div>💪 實際還掉本金：<span class="font-bold text-[#15803D]">${formatMoney(actualPrincipalPaid)}</span></div>
-            </div>
-            <p class="text-[11px] text-[#9C8275]">${d.note || ''}</p>
-          </div>
-        `;
+        return `<div class="p-4 rounded-2xl bg-[#FFF5F7] border border-[#FECDD3] space-y-2"><div class="flex justify-between items-start"><div><h3 class="font-black text-base text-[#9F1239]">${d.name}</h3><p class="text-xs text-[#BE123C]">年利率 ${d.rate}%｜月繳 ${formatMoney(pay)}</p></div><button onclick="recordDebtPayment(${idx})" class="px-2.5 py-1 rounded-full text-xs font-bold bg-white text-[#E11D48] border border-[#FDA4AF] hover:bg-[#FFE4E6]">✓ 記本月還款</button></div><p class="text-2xl font-black text-[#E11D48]">剩餘本金：${formatMoney(p)}</p><div class="grid grid-cols-2 gap-2 text-xs bg-white p-2.5 rounded-xl"><div>💔 本月利息吃掉：<span class="font-bold text-[#E11D48]">${formatMoney(monthlyInterest)}</span></div><div>💪 實際還掉本金：<span class="font-bold text-[#15803D]">${formatMoney(actualPrincipalPaid)}</span></div></div><p class="text-[11px] text-[#9C8275]">${d.note || ''}</p></div>`;
       }).join('');
       document.getElementById('statTotalDebt').innerText = formatMoney(totalDebt);
 
       const ownerLabels = { dad: '👨 爸爸', mom: '👩 媽媽', kid: '👧 女兒' };
-      const filteredIns = currentInsFilter === 'all'
-        ? appData.insurances
-        : appData.insurances.filter(i => i.owner === currentInsFilter);
-
-      document.getElementById('insuranceList').innerHTML = filteredIns.map(ins => `
-        <div class="cute-card p-4 space-y-2">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-black px-2.5 py-0.5 rounded-full bg-[#FFE5DC] text-[#D95D4B]">${ownerLabels[ins.owner]}｜${ins.company}</span>
-            <span class="text-xs text-[#9C8275]">${ins.no}</span>
-          </div>
-          <h3 class="font-black text-base text-[#4A3B32]">${ins.name}</h3>
-          <div class="text-xs text-[#7D6457] space-y-1">
-            <p>💳 繳費狀況：<b>${ins.pay}</b></p>
-            <p>⏳ 年期期限：${ins.term}</p>
-          </div>
-          <div class="p-2.5 rounded-xl bg-[#FFF9F5] border border-[#FFE8DF] text-xs font-bold text-[#B45309]">
-            ${ins.highlight}
-          </div>
-        </div>
-      `).join('');
+      const filteredIns = currentInsFilter === 'all' ? appData.insurances : appData.insurances.filter(i => i.owner === currentInsFilter);
+      document.getElementById('insuranceList').innerHTML = filteredIns.map(ins => `<div class="cute-card p-4 space-y-2"><div class="flex items-center justify-between"><span class="text-xs font-black px-2.5 py-0.5 rounded-full bg-[#FFE5DC] text-[#D95D4B]">${ownerLabels[ins.owner]}｜${ins.company}</span><span class="text-xs text-[#9C8275]">${ins.no}</span></div><h3 class="font-black text-base text-[#4A3B32]">${ins.name}</h3><div class="text-xs text-[#7D6457] space-y-1"><p>💳 繳費狀況：<b>${ins.pay}</b></p><p>⏳ 年期期限：${ins.term}</p></div><div class="p-2.5 rounded-xl bg-[#FFF9F5] border border-[#FFE8DF] text-xs font-bold text-[#B45309]">${ins.highlight}</div></div>`).join('');
 
       document.getElementById('calendarTimeline').innerHTML = [1,2,3,4,5,6,7,8,9,10,11,12].map(mo => {
         const evs = appData.events.filter(e => Number(e.month) === mo);
-        return `
-          <div class="p-4 rounded-2xl bg-[#FFF9F5] border border-[#FFE0D4] space-y-2">
-            <h3 class="font-black text-base text-[#E06A5B] border-b border-[#FFE8DF] pb-1.5">${mo} 月份大事紀</h3>
-            ${evs.length === 0 ? '<p class="text-xs text-[#B59E92]">本月無特殊大筆稅費，順順存錢！</p>' : evs.map(e => `
-              <div class="flex items-start justify-between gap-2 text-xs p-2 rounded-xl ${e.type === 'income' ? 'bg-[#DCFCE7] text-[#166534]' : 'bg-white text-[#4A3B32]'}">
-                <div>
-                  <span class="font-black">[${e.date}]</span> ${e.title}
-                </div>
-                <span class="font-black whitespace-nowrap">${e.type === 'income' ? '+' : '-'}${formatMoney(e.amount)}</span>
-              </div>
-            `).join('')}
-          </div>
-        `;
+        return `<div class="p-4 rounded-2xl bg-[#FFF9F5] border border-[#FFE0D4] space-y-2"><h3 class="font-black text-base text-[#E06A5B] border-b border-[#FFE8DF] pb-1.5">${mo} 月份大事紀</h3>${evs.length === 0 ? '<p class="text-xs text-[#B59E92]">本月無特殊大筆稅費，順順存錢！</p>' : evs.map(e => `<div class="flex items-start justify-between gap-2 text-xs p-2 rounded-xl ${e.type === 'income' ? 'bg-[#DCFCE7] text-[#166534]' : 'bg-white text-[#4A3B32]'}"><div><span class="font-black">[${e.date}]</span> ${e.title}</div><span class="font-black whitespace-nowrap">${e.type === 'income' ? '+' : '-'}${formatMoney(e.amount)}</span></div>`).join('')}</div>`;
       }).join('');
 
       let sales = 0, stockCost = 0, feeCost = 0;
@@ -726,320 +623,74 @@
         ? '<p class="text-xs text-[#9C8275]">尚未有童裝紀錄，點上方按鈕開始記帳！</p>'
         : appData.clothingLogs.map((l, idx) => {
           const badge = l.type === 'income' ? '🟢 銷售' : (l.type === 'stock' ? '🔴 進貨' : '🟡 雜支運費');
-          return `
-            <div class="flex items-center justify-between p-2.5 rounded-xl bg-[#FFF9F5]">
-              <span><b>${badge}</b>｜${l.note}</span>
-              <div class="flex items-center gap-2">
-                <span class="font-black ${l.type === 'income' ? 'text-[#15803D]' : 'text-[#BE123C]'}">${l.type === 'income' ? '+' : '-'}${formatMoney(l.amount)}</span>
-                <button onclick="deleteBizLog('clothing', ${idx})" class="text-xs text-red-400">✕</button>
-              </div>
-            </div>
-          `;
+          return `<div class="flex items-center justify-between p-2.5 rounded-xl bg-[#FFF9F5]"><span><b>${badge}</b>｜${l.note}</span><div class="flex items-center gap-2"><span class="font-black ${l.type === 'income' ? 'text-[#15803D]' : 'text-[#BE123C]'}">${l.type === 'income' ? '+' : '-'}${formatMoney(l.amount)}</span><button onclick="deleteBizLog('clothing', ${idx})" class="text-xs text-red-400">✕</button></div></div>`;
         }).join('');
 
       let nailInc = 0, nailCost = 0;
-      appData.nailsLogs.forEach(l => {
-        if (l.type === 'income') nailInc += Number(l.amount);
-        else nailCost += Number(l.amount);
-      });
+      appData.nailsLogs.forEach(l => { if (l.type === 'income') nailInc += Number(l.amount); else nailCost += Number(l.amount); });
       document.getElementById('nailIncomeTotal').innerText = formatMoney(nailInc);
       document.getElementById('nailCostTotal').innerText = formatMoney(nailCost);
       document.getElementById('nailNetProfit').innerText = formatMoney(nailInc - nailCost);
       document.getElementById('nailsLogList').innerHTML = appData.nailsLogs.length === 0
         ? '<p class="text-xs text-[#9C8275]">尚未有美甲紀錄，點上方按鈕開始記帳！</p>'
-        : appData.nailsLogs.map((l, idx) => `
-          <div class="flex items-center justify-between p-2.5 rounded-xl bg-[#FFF9F5]">
-            <span><b>${l.type === 'income' ? '💅 接客收入' : '🧴 工具材料'}</b>｜${l.note}</span>
-            <div class="flex items-center gap-2">
-              <span class="font-black ${l.type === 'income' ? 'text-[#15803D]' : 'text-[#BE123C]'}">${l.type === 'income' ? '+' : '-'}${formatMoney(l.amount)}</span>
-              <button onclick="deleteBizLog('nails', ${idx})" class="text-xs text-red-400">✕</button>
-            </div>
-          </div>
-        `).join('');
+        : appData.nailsLogs.map((l, idx) => `<div class="flex items-center justify-between p-2.5 rounded-xl bg-[#FFF9F5]"><span><b>${l.type === 'income' ? '💅 接客收入' : '🧴 工具材料'}</b>｜${l.note}</span><div class="flex items-center gap-2"><span class="font-black ${l.type === 'income' ? 'text-[#15803D]' : 'text-[#BE123C]'}">${l.type === 'income' ? '+' : '-'}${formatMoney(l.amount)}</span><button onclick="deleteBizLog('nails', ${idx})" class="text-xs text-red-400">✕</button></div></div>`).join('');
 
       document.getElementById('travelList').innerHTML = appData.travels.map((tr, idx) => {
         const pct = Math.min(100, Math.round((tr.saved / tr.target) * 100));
         const remain = Math.max(0, tr.target - tr.saved);
-        return `
-          <div class="cute-card p-5 space-y-3">
-            <div class="flex justify-between items-start">
-              <div>
-                <span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-[#E0F2FE] text-[#0369A1]">📍 ${tr.location}</span>
-                <h3 class="font-black text-lg mt-1">${tr.title}</h3>
-                <p class="text-xs text-[#9C8275]">預計出發：${tr.deadline}</p>
-              </div>
-              <button onclick="addTravelSaving(${idx})" class="px-3 py-1.5 rounded-full text-xs font-bold bg-[#FF8B7B] text-white">＋ 存入旅遊金</button>
-            </div>
-            <div class="w-full h-4 bg-[#FFE8DF] rounded-full overflow-hidden">
-              <div class="h-full bg-[#FF8B7B] transition-all" style="width:${pct}%"></div>
-            </div>
-            <div class="flex justify-between text-xs font-bold">
-              <span class="text-[#E06A5B]">已存 ${formatMoney(tr.saved)} (${pct}%)</span>
-              <span class="text-[#7D6457]">目標 ${formatMoney(tr.target)}（還差 ${formatMoney(remain)}）</span>
-            </div>
-          </div>
-        `;
+        return `<div class="cute-card p-5 space-y-3"><div class="flex justify-between items-start"><div><span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-[#E0F2FE] text-[#0369A1]">📍 ${tr.location}</span><h3 class="font-black text-lg mt-1">${tr.title}</h3><p class="text-xs text-[#9C8275]">預計出發：${tr.deadline}</p></div><button onclick="addTravelSaving(${idx})" class="px-3 py-1.5 rounded-full text-xs font-bold bg-[#FF8B7B] text-white">＋ 存入旅遊金</button></div><div class="w-full h-4 bg-[#FFE8DF] rounded-full overflow-hidden"><div class="h-full bg-[#FF8B7B] transition-all" style="width:${pct}%"></div></div><div class="flex justify-between text-xs font-bold"><span class="text-[#E06A5B]">已存 ${formatMoney(tr.saved)} (${pct}%)</span><span class="text-[#7D6457]">目標 ${formatMoney(tr.target)}（還差 ${formatMoney(remain)}）</span></div></div>`;
       }).join('');
     }
 
     function selectMonth(m) { appData.selectedMonth = m; saveData(); }
     function changeReserveMode(val) { appData.reserveMode = Number(val); saveData(); }
-    function toggleMonthAchieved() {
-      const m = appData.selectedMonth;
-      appData.monthData[m].achieved = !appData.monthData[m].achieved;
-      saveData();
-    }
-
-    function openModal(title, html) {
-      document.getElementById('modalTitle').innerText = title;
-      document.getElementById('modalBody').innerHTML = html;
-      const bd = document.getElementById('modalBackdrop');
-      bd.classList.remove('hidden');
-      bd.classList.add('flex');
-    }
-    function closeModal() {
-      const bd = document.getElementById('modalBackdrop');
-      bd.classList.add('hidden');
-      bd.classList.remove('flex');
-    }
+    function toggleMonthAchieved() { const m = appData.selectedMonth; appData.monthData[m].achieved = !appData.monthData[m].achieved; saveData(); }
+    function openModal(title, html) { document.getElementById('modalTitle').innerText = title; document.getElementById('modalBody').innerHTML = html; const bd = document.getElementById('modalBackdrop'); bd.classList.remove('hidden'); bd.classList.add('flex'); }
+    function closeModal() { const bd = document.getElementById('modalBackdrop'); bd.classList.add('hidden'); bd.classList.remove('flex'); }
 
     function openSurrenderModal(key) {
       const t = surrenderTables[key];
-      const tableRows = t.rows.map(r => `
-        <tr class="border-b border-[#FFE8DF]">
-          <td class="py-1.5 font-bold">第 ${r[0]} 年度末</td>
-          <td class="py-1.5 text-right font-black text-[#E06A5B]">${formatMoney(r[1])}</td>
-        </tr>
-      `).join('');
-      openModal(t.title, `
-        <p class="text-xs text-[#9C8275] mb-2">${t.note}</p>
-        <table class="w-full text-sm">
-          <thead><tr class="text-left text-xs text-[#9C8275] border-b"><th>保單年度</th><th class="text-right">預估解約金總額</th></tr></thead>
-          <tbody>${tableRows}</tbody>
-        </table>
-      `);
+      const tableRows = t.rows.map(r => `<tr class="border-b border-[#FFE8DF]"><td class="py-1.5 font-bold">第 ${r[0]} 年度末</td><td class="py-1.5 text-right font-black text-[#E06A5B]">${formatMoney(r[1])}</td></tr>`).join('');
+      openModal(t.title, `<p class="text-xs text-[#9C8275] mb-2">${t.note}</p><table class="w-full text-sm"><thead><tr class="text-left text-xs text-[#9C8275] border-b"><th>保單年度</th><th class="text-right">預估解約金總額</th></tr></thead><tbody>${tableRows}</tbody></table>`);
     }
 
-    function openGraceModal() {
-      openModal(`✨ 新增 ${appData.selectedMonth} 月恩典收入`, `
-        <input id="gName" placeholder="來源（例如：案子獎金、退稅、恩典奉獻）" class="w-full p-2.5 border rounded-xl" />
-        <input id="gAmt" type="number" placeholder="金額" class="w-full p-2.5 border rounded-xl" />
-        <button onclick="saveGrace()" class="w-full py-2.5 rounded-xl bg-[#FF8B7B] text-white font-bold">確認新增</button>
-      `);
-    }
-    function saveGrace() {
-      const name = document.getElementById('gName').value.trim();
-      const amount = Number(document.getElementById('gAmt').value);
-      if (!name || !amount) return;
-      appData.monthData[appData.selectedMonth].graceList.push({ name, amount });
-      closeModal(); saveData();
-    }
-    function deleteGrace(idx) {
-      appData.monthData[appData.selectedMonth].graceList.splice(idx, 1);
-      saveData();
-    }
+    function openGraceModal() { openModal(`✨ 新增 ${appData.selectedMonth} 月恩典收入`, `<input id="gName" placeholder="來源（例如：案子獎金、退稅、恩典奉獻）" class="w-full p-2.5 border rounded-xl" /><input id="gAmt" type="number" placeholder="金額" class="w-full p-2.5 border rounded-xl" /><button onclick="saveGrace()" class="w-full py-2.5 rounded-xl bg-[#FF8B7B] text-white font-bold">確認新增</button>`); }
+    function saveGrace() { const name = document.getElementById('gName').value.trim(); const amount = Number(document.getElementById('gAmt').value); if (!name || !amount) return; appData.monthData[appData.selectedMonth].graceList.push({ name, amount }); closeModal(); saveData(); }
+    function deleteGrace(idx) { appData.monthData[appData.selectedMonth].graceList.splice(idx, 1); saveData(); }
 
-    function editSalary(who) {
-      const cur = who === 'mom' ? appData.momSalary : appData.dadSalary;
-      const val = prompt(`修改${who === 'mom' ? '媽媽' : '爸爸'}每月薪資：`, cur);
-      if (val !== null && !isNaN(Number(val))) {
-        if (who === 'mom') appData.momSalary = Number(val);
-        else appData.dadSalary = Number(val);
-        saveData();
-      }
-    }
+    function editSalary(who) { const cur = who === 'mom' ? appData.momSalary : appData.dadSalary; const val = prompt(`修改${who === 'mom' ? '媽媽' : '爸爸'}每月薪資：`, cur); if (val !== null && !isNaN(Number(val))) { if (who === 'mom') appData.momSalary = Number(val); else appData.dadSalary = Number(val); saveData(); } }
+    function openAddExpenseModal() { openModal('＋ 新增每月固定開銷', `<input id="eName" placeholder="項目名稱" class="w-full p-2.5 border rounded-xl" /><input id="eAmt" type="number" placeholder="每月金額" class="w-full p-2.5 border rounded-xl" /><input id="eNote" placeholder="備註說明（選填）" class="w-full p-2.5 border rounded-xl" /><button onclick="saveNewExpense()" class="w-full py-2.5 rounded-xl bg-[#FF8B7B] text-white font-bold">新增項目</button>`); }
+    function saveNewExpense() { const name = document.getElementById('eName').value.trim(); const amount = Number(document.getElementById('eAmt').value); const note = document.getElementById('eNote').value.trim(); if (!name || !amount) return; appData.fixedExpenses.push({ name, amount, note }); closeModal(); saveData(); }
+    function editExpense(idx) { const item = appData.fixedExpenses[idx]; const val = prompt(`修改「${item.name}」金額：`, item.amount); if (val !== null && !isNaN(Number(val))) { item.amount = Number(val); saveData(); } }
+    function deleteExpense(idx) { if (confirm('確定要刪除這筆固定開銷嗎？')) { appData.fixedExpenses.splice(idx, 1); saveData(); } }
 
-    function openAddExpenseModal() {
-      openModal('＋ 新增每月固定開銷', `
-        <input id="eName" placeholder="項目名稱" class="w-full p-2.5 border rounded-xl" />
-        <input id="eAmt" type="number" placeholder="每月金額" class="w-full p-2.5 border rounded-xl" />
-        <input id="eNote" placeholder="備註說明（選填）" class="w-full p-2.5 border rounded-xl" />
-        <button onclick="saveNewExpense()" class="w-full py-2.5 rounded-xl bg-[#FF8B7B] text-white font-bold">新增項目</button>
-      `);
-    }
-    function saveNewExpense() {
-      const name = document.getElementById('eName').value.trim();
-      const amount = Number(document.getElementById('eAmt').value);
-      const note = document.getElementById('eNote').value.trim();
-      if (!name || !amount) return;
-      appData.fixedExpenses.push({ name, amount, note });
-      closeModal(); saveData();
-    }
-    function editExpense(idx) {
-      const item = appData.fixedExpenses[idx];
-      const val = prompt(`修改「${item.name}」金額：`, item.amount);
-      if (val !== null && !isNaN(Number(val))) {
-        item.amount = Number(val);
-        saveData();
-      }
-    }
-    function deleteExpense(idx) {
-      if (confirm('確定要刪除這筆固定開銷嗎？')) {
-        appData.fixedExpenses.splice(idx, 1);
-        saveData();
-      }
-    }
-
-    function editEmergencyFund() {
-      const val = prompt('輸入目前緊急預備帳戶活存總額：', appData.emergencyFund);
-      if (val !== null && !isNaN(Number(val))) { appData.emergencyFund = Number(val); saveData(); }
-    }
-
-    function openAddStockModal() {
-      openModal('📈 新增持股項目', `
-        <input id="sCode" placeholder="股票代號（如 0050）" class="w-full p-2.5 border rounded-xl" />
-        <input id="sName" placeholder="股票名稱（如 元大台灣50）" class="w-full p-2.5 border rounded-xl" />
-        <input id="sShares" type="number" placeholder="持有股數" class="w-full p-2.5 border rounded-xl" />
-        <input id="sCost" type="number" step="0.01" placeholder="平均買入成本價" class="w-full p-2.5 border rounded-xl" />
-        <input id="sPrice" type="number" step="0.01" placeholder="當日收盤價" class="w-full p-2.5 border rounded-xl" />
-        <button onclick="saveStock()" class="w-full py-2.5 rounded-xl bg-[#6B5CE7] text-white font-bold">新增持股</button>
-      `);
-    }
-    function saveStock() {
-      const code = document.getElementById('sCode').value.trim();
-      const name = document.getElementById('sName').value.trim();
-      const shares = Number(document.getElementById('sShares').value);
-      const avgCost = Number(document.getElementById('sCost').value);
-      const currentPrice = Number(document.getElementById('sPrice').value);
-      if (!code || !shares) return;
-      appData.stocks.push({ code, name, shares, avgCost, currentPrice });
-      closeModal(); saveData();
-    }
-    function updateStockPrice(idx) {
-      const st = appData.stocks[idx];
-      const val = prompt(`輸入 ${st.code} ${st.name} 今日收盤價：`, st.currentPrice);
-      if (val !== null && !isNaN(Number(val))) { st.currentPrice = Number(val); saveData(); }
-    }
+    function editEmergencyFund() { const val = prompt('輸入目前緊急預備帳戶活存總額：', appData.emergencyFund); if (val !== null && !isNaN(Number(val))) { appData.emergencyFund = Number(val); saveData(); } }
+    function openAddStockModal() { openModal('📈 新增持股項目', `<input id="sCode" placeholder="股票代號（如 0050）" class="w-full p-2.5 border rounded-xl" /><input id="sName" placeholder="股票名稱（如 元大台灣50）" class="w-full p-2.5 border rounded-xl" /><input id="sShares" type="number" placeholder="持有股數" class="w-full p-2.5 border rounded-xl" /><input id="sCost" type="number" step="0.01" placeholder="平均買入成本價" class="w-full p-2.5 border rounded-xl" /><input id="sPrice" type="number" step="0.01" placeholder="當日收盤價" class="w-full p-2.5 border rounded-xl" /><button onclick="saveStock()" class="w-full py-2.5 rounded-xl bg-[#6B5CE7] text-white font-bold">新增持股</button>`); }
+    function saveStock() { const code = document.getElementById('sCode').value.trim(); const name = document.getElementById('sName').value.trim(); const shares = Number(document.getElementById('sShares').value); const avgCost = Number(document.getElementById('sCost').value); const currentPrice = Number(document.getElementById('sPrice').value); if (!code || !shares) return; appData.stocks.push({ code, name, shares, avgCost, currentPrice }); closeModal(); saveData(); }
+    function updateStockPrice(idx) { const st = appData.stocks[idx]; const val = prompt(`輸入 ${st.code} ${st.name} 今日收盤價：`, st.currentPrice); if (val !== null && !isNaN(Number(val))) { st.currentPrice = Number(val); saveData(); } }
     function deleteStock(idx) { appData.stocks.splice(idx, 1); saveData(); }
 
-    function openAddDebtModal() {
-      openModal('💳 新增貸款／負債項目', `
-        <input id="dName" placeholder="負債名稱" class="w-full p-2.5 border rounded-xl" />
-        <input id="dPrin" type="number" placeholder="目前剩餘本金" class="w-full p-2.5 border rounded-xl" />
-        <input id="dRate" type="number" step="0.01" placeholder="年利率（%，若0利率填0）" class="w-full p-2.5 border rounded-xl" />
-        <input id="dPay" type="number" placeholder="每月還款金額" class="w-full p-2.5 border rounded-xl" />
-        <input id="dNote" placeholder="清償計畫備註" class="w-full p-2.5 border rounded-xl" />
-        <button onclick="saveDebt()" class="w-full py-2.5 rounded-xl bg-[#E11D48] text-white font-bold">新增負債</button>
-      `);
-    }
-    function saveDebt() {
-      const name = document.getElementById('dName').value.trim();
-      const principal = Number(document.getElementById('dPrin').value);
-      const rate = Number(document.getElementById('dRate').value);
-      const monthlyPay = Number(document.getElementById('dPay').value);
-      const note = document.getElementById('dNote').value.trim();
-      if (!name) return;
-      appData.debts.push({ id: 'd' + Date.now(), name, principal, rate, monthlyPay, note });
-      closeModal(); saveData();
-    }
-    function recordDebtPayment(idx) {
-      const d = appData.debts[idx];
-      const interest = Math.round(d.principal * (d.rate / 100 / 12));
-      const paidPrin = Math.max(0, d.monthlyPay - interest);
-      if (confirm(`確認記錄「${d.name}」本月還款？
-本月利息約 ${formatMoney(interest)}，將從本金扣除實際償還的 ${formatMoney(paidPrin)}。`)) {
-        d.principal = Math.max(0, d.principal - paidPrin);
-        saveData();
-      }
-    }
+    function openAddDebtModal() { openModal('💳 新增貸款／負債項目', `<input id="dName" placeholder="負債名稱" class="w-full p-2.5 border rounded-xl" /><input id="dPrin" type="number" placeholder="目前剩餘本金" class="w-full p-2.5 border rounded-xl" /><input id="dRate" type="number" step="0.01" placeholder="年利率（%，若0利率填0）" class="w-full p-2.5 border rounded-xl" /><input id="dPay" type="number" placeholder="每月還款金額" class="w-full p-2.5 border rounded-xl" /><input id="dNote" placeholder="清償計畫備註" class="w-full p-2.5 border rounded-xl" /><button onclick="saveDebt()" class="w-full py-2.5 rounded-xl bg-[#E11D48] text-white font-bold">新增負債</button>`); }
+    function saveDebt() { const name = document.getElementById('dName').value.trim(); const principal = Number(document.getElementById('dPrin').value); const rate = Number(document.getElementById('dRate').value); const monthlyPay = Number(document.getElementById('dPay').value); const note = document.getElementById('dNote').value.trim(); if (!name) return; appData.debts.push({ id: 'd' + Date.now(), name, principal, rate, monthlyPay, note }); closeModal(); saveData(); }
+    function recordDebtPayment(idx) { const d = appData.debts[idx]; const interest = Math.round(d.principal * (d.rate / 100 / 12)); const paidPrin = Math.max(0, d.monthlyPay - interest); if (confirm(`確認記錄「${d.name}」本月還款？
+本月利息約 ${formatMoney(interest)}，將從本金扣除實際償還的 ${formatMoney(paidPrin)}。`)) { d.principal = Math.max(0, d.principal - paidPrin); saveData(); } }
 
-    function filterInsurance(owner, btnEl) {
-      currentInsFilter = owner;
-      document.querySelectorAll('.ins-filter').forEach(btn => {
-        btn.className = 'ins-filter px-4 py-1.5 rounded-full text-xs font-bold bg-white text-[#7D6457] border';
-      });
-      if (btnEl) {
-        btnEl.className = 'ins-filter active px-4 py-1.5 rounded-full text-xs font-bold bg-[#FF8B7B] text-white';
-      }
-      renderAll();
-    }
+    function filterInsurance(owner, btnEl) { currentInsFilter = owner; document.querySelectorAll('.ins-filter').forEach(btn => { btn.className = 'ins-filter px-4 py-1.5 rounded-full text-xs font-bold bg-white text-[#7D6457] border'; }); if (btnEl) btnEl.className = 'ins-filter active px-4 py-1.5 rounded-full text-xs font-bold bg-[#FF8B7B] text-white'; renderAll(); }
+    function openAddEventModal() { openModal('📅 新增年度日期提醒', `<select id="evMonth" class="w-full p-2.5 border rounded-xl">${[1,2,3,4,5,6,7,8,9,10,11,12].map(m => `<option value="${m}">${m} 月</option>`).join('')}</select><input id="evDate" placeholder="日期（如 5/15）" class="w-full p-2.5 border rounded-xl" /><input id="evTitle" placeholder="項目名稱（如 房屋稅、保費）" class="w-full p-2.5 border rounded-xl" /><input id="evAmt" type="number" placeholder="金額" class="w-full p-2.5 border rounded-xl" /><select id="evType" class="w-full p-2.5 border rounded-xl"><option value="expense">支出扣款</option><option value="income">領錢／入帳</option></select><button onclick="saveEvent()" class="w-full py-2.5 rounded-xl bg-[#FF8B7B] text-white font-bold">加入行事曆</button>`); }
+    function saveEvent() { const month = Number(document.getElementById('evMonth').value); const date = document.getElementById('evDate').value.trim(); const title = document.getElementById('evTitle').value.trim(); const amount = Number(document.getElementById('evAmt').value); const type = document.getElementById('evType').value; if (!date || !title || !amount) return; appData.events.push({ month, date, title, amount, type }); closeModal(); saveData(); }
 
-    function openAddEventModal() {
-      openModal('📅 新增年度日期提醒', `
-        <select id="evMonth" class="w-full p-2.5 border rounded-xl">
-          ${[1,2,3,4,5,6,7,8,9,10,11,12].map(m => `<option value="${m}">${m} 月</option>`).join('')}
-        </select>
-        <input id="evDate" placeholder="日期（如 5/15）" class="w-full p-2.5 border rounded-xl" />
-        <input id="evTitle" placeholder="項目名稱（如 房屋稅、保費）" class="w-full p-2.5 border rounded-xl" />
-        <input id="evAmt" type="number" placeholder="金額" class="w-full p-2.5 border rounded-xl" />
-        <select id="evType" class="w-full p-2.5 border rounded-xl">
-          <option value="expense">支出扣款</option>
-          <option value="income">領錢／入帳</option>
-        </select>
-        <button onclick="saveEvent()" class="w-full py-2.5 rounded-xl bg-[#FF8B7B] text-white font-bold">加入行事曆</button>
-      `);
-    }
-    function saveEvent() {
-      const month = Number(document.getElementById('evMonth').value);
-      const date = document.getElementById('evDate').value.trim();
-      const title = document.getElementById('evTitle').value.trim();
-      const amount = Number(document.getElementById('evAmt').value);
-      const type = document.getElementById('evType').value;
-      if (!date || !title || !amount) return;
-      appData.events.push({ month, date, title, amount, type });
-      closeModal(); saveData();
-    }
+    function switchBizTab(biz) { ['clothing', 'nails'].forEach(b => { document.getElementById('bizPanel-' + b).classList.add('hidden'); document.getElementById('bizBtn-' + b).className = 'px-5 py-2.5 rounded-2xl text-sm font-black bg-white text-[#7D6457] border'; }); document.getElementById('bizPanel-' + biz).classList.remove('hidden'); document.getElementById('bizBtn-' + biz).className = 'px-5 py-2.5 rounded-2xl text-sm font-black bg-[#FF8B7B] text-white shadow-sm'; }
+    function openBizModal(biz, type) { openModal('📝 新增副業流水帳', `<input id="bNote" placeholder="項目說明（如：韓國秋裝批發、客人小美單色凝膠）" class="w-full p-2.5 border rounded-xl" /><input id="bAmt" type="number" placeholder="金額" class="w-full p-2.5 border rounded-xl" /><button onclick="saveBizLog('${biz}', '${type}')" class="w-full py-2.5 rounded-xl bg-[#FF8B7B] text-white font-bold">儲存紀錄</button>`); }
+    function saveBizLog(biz, type) { const note = document.getElementById('bNote').value.trim(); const amount = Number(document.getElementById('bAmt').value); if (!note || !amount) return; if (biz === 'clothing') appData.clothingLogs.unshift({ type, note, amount }); else appData.nailsLogs.unshift({ type, note, amount }); closeModal(); saveData(); }
+    function deleteBizLog(biz, idx) { if (biz === 'clothing') appData.clothingLogs.splice(idx, 1); else appData.nailsLogs.splice(idx, 1); saveData(); }
+    function editInventory() { const val = prompt('輸入目前手上尚未賣出的童裝庫存進貨成本：', appData.clothingInventory); if (val !== null && !isNaN(Number(val))) { appData.clothingInventory = Number(val); saveData(); } }
 
-    function switchBizTab(biz) {
-      ['clothing', 'nails'].forEach(b => {
-        document.getElementById('bizPanel-' + b).classList.add('hidden');
-        document.getElementById('bizBtn-' + b).className = 'px-5 py-2.5 rounded-2xl text-sm font-black bg-white text-[#7D6457] border';
-      });
-      document.getElementById('bizPanel-' + biz).classList.remove('hidden');
-      document.getElementById('bizBtn-' + biz).className = 'px-5 py-2.5 rounded-2xl text-sm font-black bg-[#FF8B7B] text-white shadow-sm';
-    }
-    function openBizModal(biz, type) {
-      openModal('📝 新增副業流水帳', `
-        <input id="bNote" placeholder="項目說明（如：韓國秋裝批發、客人小美單色凝膠）" class="w-full p-2.5 border rounded-xl" />
-        <input id="bAmt" type="number" placeholder="金額" class="w-full p-2.5 border rounded-xl" />
-        <button onclick="saveBizLog('${biz}', '${type}')" class="w-full py-2.5 rounded-xl bg-[#FF8B7B] text-white font-bold">儲存紀錄</button>
-      `);
-    }
-    function saveBizLog(biz, type) {
-      const note = document.getElementById('bNote').value.trim();
-      const amount = Number(document.getElementById('bAmt').value);
-      if (!note || !amount) return;
-      if (biz === 'clothing') appData.clothingLogs.unshift({ type, note, amount });
-      else appData.nailsLogs.unshift({ type, note, amount });
-      closeModal(); saveData();
-    }
-    function deleteBizLog(biz, idx) {
-      if (biz === 'clothing') appData.clothingLogs.splice(idx, 1);
-      else appData.nailsLogs.splice(idx, 1);
-      saveData();
-    }
-    function editInventory() {
-      const val = prompt('輸入目前手上尚未賣出的童裝庫存進貨成本：', appData.clothingInventory);
-      if (val !== null && !isNaN(Number(val))) { appData.clothingInventory = Number(val); saveData(); }
-    }
-
-    function openAddTravelModal() {
-      openModal('✈️ 新增夢想旅遊目標', `
-        <input id="tTitle" placeholder="旅行主題（如：沖繩親子自駕遊）" class="w-full p-2.5 border rounded-xl" />
-        <input id="tLoc" placeholder="目的地" class="w-full p-2.5 border rounded-xl" />
-        <input id="tTarget" type="number" placeholder="目標總金額" class="w-full p-2.5 border rounded-xl" />
-        <input id="tDate" placeholder="預計出發年月（如 2027-08）" class="w-full p-2.5 border rounded-xl" />
-        <button onclick="saveTravel()" class="w-full py-2.5 rounded-xl bg-[#FF8B7B] text-white font-bold">建立旅遊基金</button>
-      `);
-    }
-    function saveTravel() {
-      const title = document.getElementById('tTitle').value.trim();
-      const location = document.getElementById('tLoc').value.trim();
-      const target = Number(document.getElementById('tTarget').value);
-      const deadline = document.getElementById('tDate').value.trim();
-      if (!title || !target) return;
-      appData.travels.push({ id: 't' + Date.now(), title, location, target, saved: 0, deadline });
-      closeModal(); saveData();
-    }
-    function addTravelSaving(idx) {
-      const val = prompt('這次要存入多少旅遊基金？', '3000');
-      if (val !== null && !isNaN(Number(val))) {
-        appData.travels[idx].saved += Number(val);
-        saveData();
-      }
-    }
+    function openAddTravelModal() { openModal('✈️ 新增夢想旅遊目標', `<input id="tTitle" placeholder="旅行主題（如：沖繩親子自駕遊）" class="w-full p-2.5 border rounded-xl" /><input id="tLoc" placeholder="目的地" class="w-full p-2.5 border rounded-xl" /><input id="tTarget" type="number" placeholder="目標總金額" class="w-full p-2.5 border rounded-xl" /><input id="tDate" placeholder="預計出發年月（如 2027-08）" class="w-full p-2.5 border rounded-xl" /><button onclick="saveTravel()" class="w-full py-2.5 rounded-xl bg-[#FF8B7B] text-white font-bold">建立旅遊基金</button>`); }
+    function saveTravel() { const title = document.getElementById('tTitle').value.trim(); const location = document.getElementById('tLoc').value.trim(); const target = Number(document.getElementById('tTarget').value); const deadline = document.getElementById('tDate').value.trim(); if (!title || !target) return; appData.travels.push({ id: 't' + Date.now(), title, location, target, saved: 0, deadline }); closeModal(); saveData(); }
+    function addTravelSaving(idx) { const val = prompt('這次要存入多少旅遊基金？', '3000'); if (val !== null && !isNaN(Number(val))) { appData.travels[idx].saved += Number(val); saveData(); } }
 
     renderAll();
+    initCloudSync();
   </script>
 </body>
 </html>
